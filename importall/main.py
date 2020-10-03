@@ -1,28 +1,30 @@
+import argparse
 import sys
 from pathlib import Path
-
-import click
+from typing import List
 
 from .finder import find_importable_names
 
 
-@click.command()
-@click.option(
-    "--exclude", default="tests", help="comma-separated directories to ignore"
-)
-@click.option("--root", help="Search under this dir")
-@click.argument("package")
-def main(package: str, exclude: str, root: str) -> None:
-    assert "." not in package, "give top level package name"
-    if root:
-        sys.path.insert(0, root)
+def main(argv: List[str]) -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--exclude", default="tests", help="comma-separated directories to ignore"
+    )
+    parser.add_argument("--root", help="Search under this dir")
+    parser.add_argument("package", metavar="PACKAGE", help="Name of package to test")
+    args = parser.parse_args(argv)
 
-    filename = __import__(package).__file__
+    assert "." not in args.package, "give top level package name"
+    if args.root:
+        sys.path.insert(0, args.root)
+
+    filename = __import__(args.package).__file__
     assert filename is not None, "namespace packages not supported"
     assert filename.endswith("__init__.py"), "single modules not supported"
 
-    exclude_set = set(exclude.split(","))
+    exclude_set = set(args.exclude.split(","))
     base_path = Path(filename).parent.parent
-    for name in sorted(find_importable_names(base_path, package, exclude_set)):
+    for name in sorted(find_importable_names(base_path, args.package, exclude_set)):
         __import__(name)
         print(f"{name} ok")

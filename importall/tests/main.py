@@ -1,20 +1,52 @@
+import io
 import sys
 import unittest
 from pathlib import Path
+from typing import List, Optional, Tuple
 
 import volatile
-from click.testing import CliRunner
 
 from importall.main import main
 
 
 class MainTest(unittest.TestCase):
+    def do_run(self, args: List[str]) -> Tuple[str, Optional[Exception]]:
+        buf = io.StringIO()
+        exc = None
+        try:
+            old_stdout = sys.stdout
+            sys.stdout = buf
+            sys.stderr = buf
+            main(args)
+        except Exception as e:
+            exc = e
+        finally:
+            for k in list(sys.modules.keys()):
+                if k.startswith("fake_module"):
+                    del sys.modules[k]
+            sys.stdout = old_stdout
+        return (buf.getvalue(), exc)
+
     def test_initial_import_fail(self) -> None:
-        runner = CliRunner()
-        result = runner.invoke(main, ["fake_module"])
-        self.assertEqual(result.exit_code, 1)
+        output, err = self.do_run(["fake_module"])
         # TODO message
-        self.assertIsInstance(result.exception, ImportError)
+        self.assertIsInstance(err, ImportError)
+
+    def test_no_single_module(self) -> None:
+        output, err = self.do_run(["os"])
+        # TODO message
+        self.assertIsInstance(err, AssertionError)
+
+    def test_no_root(self) -> None:
+        output, err = self.do_run(["importall"])
+        self.assertEqual(
+            """\
+importall ok
+importall.finder ok
+importall.main ok
+""",
+            output,
+        )
 
     def test_ok(self) -> None:
         with volatile.dir() as d:
@@ -27,22 +59,16 @@ class MainTest(unittest.TestCase):
             (pd / "fake_module" / "tests" / "x.py").write_text("")
             (pd / "fake_module" / "x.py").write_text("")
 
-            try:
-                runner = CliRunner()
-                result = runner.invoke(main, [f"--root={d}", "fake_module"])
-            finally:
-                sys.path.pop()
-                for k in list(sys.modules.keys()):
-                    if k.startswith("fake_module"):
-                        del sys.modules[k]
+            output, err = self.do_run([f"--root={d}", "fake_module"])
+
         self.assertEqual(
             """\
 fake_module ok
 fake_module.x ok
 """,
-            result.output,
+            output,
         )
-        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(None, err)
 
     def test_fail(self) -> None:
         with volatile.dir() as d:
@@ -51,20 +77,12 @@ fake_module.x ok
             (pd / "fake_module" / "__init__.py").write_text("")
             (pd / "fake_module" / "x.py").write_text("x x")
 
-            try:
-                runner = CliRunner()
-                result = runner.invoke(main, [f"--root={d}", "fake_module"])
-            finally:
-                sys.path.pop()
-                for k in list(sys.modules.keys()):
-                    if k.startswith("fake_module"):
-                        del sys.modules[k]
+            output, err = self.do_run([f"--root={d}", "fake_module"])
         self.assertEqual(
             """\
 fake_module ok
 """,
-            result.output,
+            output,
         )
-        self.assertEqual(result.exit_code, 1)
         # TODO message
-        self.assertIsInstance(result.exception, SyntaxError)
+        self.assertIsInstance(err, SyntaxError)
