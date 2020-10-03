@@ -1,12 +1,12 @@
 import argparse
 import sys
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 from .finder import find_importable_names
 
 
-def main(argv: List[str]) -> None:
+def main(argv: Optional[List[str]] = None) -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--exclude", default="tests", help="comma-separated directories to ignore"
