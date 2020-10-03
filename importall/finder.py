@@ -1,9 +1,11 @@
 import sys
 from pathlib import Path
-from typing import List, Set
+from typing import Generator, Optional, Set
 
 
-def find_importable_names(path: Path, prefix: str, exclude: Set[str]) -> List[str]:
+def find_importable_names(
+    path: Path, prefix: str, exclude: Set[str]
+) -> Generator[str, None, None]:
     patterns = [f"**/*.py"]
     if sys.platform == "win32":
         patterns.append(f"**/*.dll")
@@ -21,7 +23,7 @@ def find_importable_names(path: Path, prefix: str, exclude: Set[str]) -> List[st
                 yield name
 
 
-def to_importable_name(path: Path) -> str:
+def to_importable_name(path: Path) -> Optional[str]:
     parts = list(path.parts)
     parts[-1] = parts[-1].split(".")[0]
     if parts[-1] == "__init__":

@@ -9,14 +9,14 @@ from importall.main import main
 
 
 class MainTest(unittest.TestCase):
-    def test_initial_import_fail(self):
+    def test_initial_import_fail(self) -> None:
         runner = CliRunner()
         result = runner.invoke(main, ["fake_module"])
         self.assertEqual(result.exit_code, 1)
         # TODO message
         self.assertIsInstance(result.exception, ImportError)
 
-    def test_ok(self):
+    def test_ok(self) -> None:
         with volatile.dir() as d:
             pd = Path(d)
             (pd / "fake_module").mkdir()
@@ -44,7 +44,7 @@ fake_module.x ok
         )
         self.assertEqual(result.exit_code, 0)
 
-    def test_fail(self):
+    def test_fail(self) -> None:
         with volatile.dir() as d:
             pd = Path(d)
             (pd / "fake_module").mkdir()

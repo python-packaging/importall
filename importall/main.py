@@ -22,7 +22,7 @@ def main(package: str, exclude: str, root: str) -> None:
     assert filename.endswith("__init__.py"), "single modules not supported"
 
     exclude_set = set(exclude.split(","))
-    root = Path(filename).parent.parent
-    for name in sorted(find_importable_names(root, package, exclude_set)):
+    base_path = Path(filename).parent.parent
+    for name in sorted(find_importable_names(base_path, package, exclude_set)):
         __import__(name)
         print(f"{name} ok")
