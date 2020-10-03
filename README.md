@@ -1,6 +1,28 @@
 # importall
 
+Usage:
 
+```
+$ python -m importall click --exclude="_winconsole.py"
+click ok
+click._bashcomplete ok
+click._compat ok
+click._termui_impl ok
+click._textwrap ok
+click._unicodefun ok
+click.core ok
+click.decorators ok
+click.exceptions ok
+click.formatting ok
+click.globals ok
+click.parser ok
+click.termui ok
+click.testing ok
+click.types ok
+click.utils ok
+$ echo $?
+0
+```
 
 # License
 
