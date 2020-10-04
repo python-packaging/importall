@@ -12,7 +12,9 @@ def main(argv: Optional[List[str]] = None) -> None:
         "--exclude", default="tests", help="comma-separated directories to ignore"
     )
     parser.add_argument("--root", help="Search under this dir")
-    parser.add_argument("package", nargs='+', metavar="PACKAGE", help="Name of package(s) to test")
+    parser.add_argument(
+        "package", nargs="+", metavar="PACKAGE", help="Name of package(s) to test"
+    )
     args = parser.parse_args(argv)
 
     if args.root:
@@ -25,7 +27,9 @@ def main(argv: Optional[List[str]] = None) -> None:
 
         filename = __import__(package).__file__
         assert filename is not None, f"{package}: namespace packages not supported"
-        assert filename.endswith("__init__.py"), f"{package}: single modules not supported"
+        assert filename.endswith(
+            "__init__.py"
+        ), f"{package}: single modules not supported"
 
         base_path = Path(filename).parents[1]
         for name in sorted(find_importable_names(base_path, package, exclude_set)):
