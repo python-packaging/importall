@@ -48,7 +48,7 @@ importall.main ok
             output,
         )
 
-    def test_ok(self) -> None:
+    def test_single_modules_ok(self) -> None:
         with volatile.dir() as d:
             pd = Path(d)
             (pd / "fake_module").mkdir()
@@ -65,6 +65,26 @@ importall.main ok
             """\
 fake_module ok
 fake_module.x ok
+""",
+            output,
+        )
+        self.assertEqual(None, err)
+
+    def test_multiple_modules_ok(self) -> None:
+        with volatile.dir() as d:
+            pd = Path(d)
+            (pd / "fake_module_1").mkdir()
+            (pd / "fake_module_1" / "__init__.py").write_text("")
+
+            (pd / "fake_module_2").mkdir()
+            (pd / "fake_module_2" / "__init__.py").write_text("")
+
+            output, err = self.do_run([f"--root={d}", "fake_module_1", "fake_module_2"])
+
+        self.assertEqual(
+            """\
+fake_module_1 ok
+fake_module_2 ok
 """,
             output,
         )
